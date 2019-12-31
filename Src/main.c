@@ -309,15 +309,14 @@ void StartDefaultTask(void *argument)
 
     // In this function, we would send the queue to receiver
     char *template = "I'm QQM123\r\n";
-    char *ptr = pvPortMalloc(strlen(template)+8);
     int len_payload = strlen(template) + 1;
 
     uart_tx_queue_pkg_t *pkg = pvPortMalloc(UART_TX_PKGSIZE(len_payload));
-    pkg->msg_id = UART_TX_MSG0_SEND_DATA;
+    pkg->msg_id = UART_TX_MSG1_SEND_DATA;
     pkg->len = len_payload;
     strcpy((char*)UART_TX_PAYLOAD_P(pkg), template);
 
-    osMessageQueuePut(uart_tx_queueHandle, &ptr, /*prio*/0, osWaitForever);
+    osMessageQueuePut(uart_tx_queueHandle, &pkg, /*prio*/0, osWaitForever);
     osDelay(40);
   }
   /* USER CODE END 5 */ 
