@@ -51,7 +51,7 @@ typedef StaticQueue_t osStaticMessageQDef_t;
 osThreadId_t defaultTaskHandle;
 osThreadId_t task_uart_txHandle;
 osMessageQueueId_t uart_tx_queueHandle;
-uint8_t uart_tx_queueBuffer[ 16 * sizeof( uint32_t ) ];
+uint8_t uart_tx_queueBuffer[ 16 * 8 ];
 osStaticMessageQDef_t uart_tx_queueControlBlock;
 /* USER CODE BEGIN PV */
 
@@ -132,7 +132,7 @@ int main(void)
     .mq_mem = &uart_tx_queueBuffer,
     .mq_size = sizeof(uart_tx_queueBuffer)
   };
-  uart_tx_queueHandle = osMessageQueueNew (16, sizeof(uint32_t), &uart_tx_queue_attributes);
+  uart_tx_queueHandle = osMessageQueueNew (16, 8, &uart_tx_queue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -322,18 +322,11 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-
-    // In this function, we would send the queue to receiver
     char *template = "I'm QQM123\r\n";
-    int len_payload = strlen(template) + 1;
+    extern void uart_tx_send_str(char *str);
+    uart_tx_send_str(template);
 
-    uart_tx_queue_pkg_t *pkg = pvPortMalloc(UART_TX_PKGSIZE(len_payload));
-    pkg->msg_id = UART_TX_MSG1_SEND_DATA;
-    pkg->len = len_payload;
-    strcpy((char*)UART_TX_PAYLOAD_P(pkg), template);
-
-    osMessageQueuePut(uart_tx_queueHandle, &pkg, /*prio*/0, osWaitForever);
-    osDelay(40);
+    osDelay(10);
   }
   /* USER CODE END 5 */ 
 }
