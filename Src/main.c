@@ -276,7 +276,14 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+    // The JLink VCOM port is quite handy to use
+    // 1. Connect the UART TX/RX pins to the JLINK, in Nucleo board, that's already physically connected
+    // 2. As the "putty" connects to COM port, it conveys the BAUD rate information within USB protocol. So JLINK can configure its interface accordingly
+    // 3. As above, if I configure the wrong BAUD rate, it's not working as well
+    // 4. I've tested 115200/230400/460800/921600, and all of them were working :-)
+    char str_to_send[] = "I'm QQM\r\n";
+    HAL_UART_Transmit(&huart2, str_to_send, sizeof(str_to_send), HAL_MAX_DELAY);
+
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
     osDelay(100);
   }
