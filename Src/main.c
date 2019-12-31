@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -45,7 +46,12 @@
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
 
+typedef StaticQueue_t osStaticMessageQDef_t;
 osThreadId_t defaultTaskHandle;
+osThreadId_t task_uart_txHandle;
+osMessageQueueId_t uart_tx_queueHandle;
+uint8_t uart_tx_queueBuffer[ 16 * sizeof( uint32_t ) ];
+osStaticMessageQDef_t uart_tx_queueControlBlock;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -55,6 +61,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 void StartDefaultTask(void *argument);
+void task_uart_tx_entry(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -113,6 +120,17 @@ int main(void)
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* definition and creation of uart_tx_queue */
+  const osMessageQueueAttr_t uart_tx_queue_attributes = {
+    .name = "uart_tx_queue",
+    .cb_mem = &uart_tx_queueControlBlock,
+    .cb_size = sizeof(uart_tx_queueControlBlock),
+    .mq_mem = &uart_tx_queueBuffer,
+    .mq_size = sizeof(uart_tx_queueBuffer)
+  };
+  uart_tx_queueHandle = osMessageQueueNew (16, sizeof(uint32_t), &uart_tx_queue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -125,6 +143,14 @@ int main(void)
     .stack_size = 128
   };
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* definition and creation of task_uart_tx */
+  const osThreadAttr_t task_uart_tx_attributes = {
+    .name = "task_uart_tx",
+    .priority = (osPriority_t) osPriorityLow,
+    .stack_size = 256
+  };
+  task_uart_txHandle = osThreadNew(task_uart_tx_entry, NULL, &task_uart_tx_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -266,28 +292,52 @@ static void MX_GPIO_Init(void)
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
+
+char template[] = "I'm QQM123\r\n";
 void StartDefaultTask(void *argument)
 {
+    
     
     
     
 
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
+  uint32_t id = 0;
   for(;;)
   {
-    // The JLink VCOM port is quite handy to use
-    // 1. Connect the UART TX/RX pins to the JLINK, in Nucleo board, that's already physically connected
-    // 2. As the "putty" connects to COM port, it conveys the BAUD rate information within USB protocol. So JLINK can configure its interface accordingly
-    // 3. As above, if I configure the wrong BAUD rate, it's not working as well
-    // 4. I've tested 115200/230400/460800/921600, and all of them were working :-)
-    char str_to_send[] = "I'm QQM\r\n";
-    HAL_UART_Transmit(&huart2, str_to_send, sizeof(str_to_send), HAL_MAX_DELAY);
-
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    osDelay(100);
+    // In this function, we would send the queue to receiver
+    //char template[] = "I'm QQM123\r\n";
+    int len = strlen(template);
+    char *ptr = pvPortMalloc(strlen(template)+8);
+    //char *ptr = pvPortMalloc(32);
+    *((uint32_t*)(ptr)) = id;
+    if(++id >= 4) {
+      id = 0;
+    }
+    strcpy(ptr+4, template);
+    osMessageQueuePut(uart_tx_queueHandle, &ptr, /*prio*/0, osWaitForever);
+    osDelay(40);
   }
   /* USER CODE END 5 */ 
+}
+
+/* USER CODE BEGIN Header_task_uart_tx_entry */
+/**
+* @brief Function implementing the task_uart_tx thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_task_uart_tx_entry */
+__weak void task_uart_tx_entry(void *argument)
+{
+  /* USER CODE BEGIN task_uart_tx_entry */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END task_uart_tx_entry */
 }
 
 /**

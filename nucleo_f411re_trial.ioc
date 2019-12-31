@@ -1,6 +1,9 @@
 #MicroXplorer Configuration settings - do not modify
-FREERTOS.IPParameters=Tasks01,configUSE_TICKLESS_IDLE
-FREERTOS.Tasks01=defaultTask,24,128,StartDefaultTask,Default,NULL,Dynamic,NULL,NULL
+FREERTOS.FootprintOK=true
+FREERTOS.IPParameters=Tasks01,configUSE_TICKLESS_IDLE,configMINIMAL_STACK_SIZE,Queues01,FootprintOK
+FREERTOS.Queues01=uart_tx_queue,16,uint32_t,0,Static,uart_tx_queueBuffer,uart_tx_queueControlBlock
+FREERTOS.Tasks01=defaultTask,24,128,StartDefaultTask,Default,NULL,Dynamic,NULL,NULL;task_uart_tx,8,256,task_uart_tx_entry,As weak,NULL,Dynamic,NULL,NULL
+FREERTOS.configMINIMAL_STACK_SIZE=128
 FREERTOS.configUSE_TICKLESS_IDLE=2
 File.Version=6
 KeepUserPlacement=true
