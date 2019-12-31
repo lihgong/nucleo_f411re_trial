@@ -320,13 +320,13 @@ void StartDefaultTask(void *argument)
 
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
+  char *template = "I'm QQM123\r\n";
   for(;;)
   {
-    char *template = "I'm QQM123\r\n";
     extern void uart_tx_send_str(char *str);
     uart_tx_send_str(template);
 
-    osDelay(10);
+    osDelay(2);
   }
   /* USER CODE END 5 */ 
 }
