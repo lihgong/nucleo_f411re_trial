@@ -81,6 +81,7 @@ void task_uart_tx_entry(void *argument)
         } else if(msg_id == UART_TX_MSG1_SEND_DATA) {
             push_buf(payload, len);
             touch_dma();
+            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
         } else if(msg_id == UART_TX_MSG2_DMA_DONE) {
             g_uart_tx.dma_on_going = 0;
@@ -92,7 +93,7 @@ void task_uart_tx_entry(void *argument)
             //HAL_UART_Transmit(&huart2, (uint8_t*)str_to_send, sizeof(str_to_send), HAL_MAX_DELAY);
         }
 
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        
 
         if(payload != NULL) {
             vPortFree(payload);
