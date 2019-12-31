@@ -22,6 +22,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "string.h"
+#include "uart_tx.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -303,18 +304,19 @@ void StartDefaultTask(void *argument)
 
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
-  uint32_t id = 0;
   for(;;)
   {
+
     // In this function, we would send the queue to receiver
     char *template = "I'm QQM123\r\n";
     char *ptr = pvPortMalloc(strlen(template)+8);
-    //char *ptr = pvPortMalloc(32);
-    *((uint32_t*)(ptr)) = id;
-    if(++id >= 4) {
-      id = 0;
-    }
-    strcpy(ptr+4, template);
+    int len_payload = strlen(template) + 1;
+
+    uart_tx_queue_pkg_t *pkg = pvPortMalloc(UART_TX_PKGSIZE(len_payload));
+    pkg->msg_id = UART_TX_MSG0_SEND_DATA;
+    pkg->len = len_payload;
+    strcpy((char*)UART_TX_PAYLOAD_P(pkg), template);
+
     osMessageQueuePut(uart_tx_queueHandle, &ptr, /*prio*/0, osWaitForever);
     osDelay(40);
   }

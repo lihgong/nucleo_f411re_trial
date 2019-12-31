@@ -1,7 +1,7 @@
 #include <string.h>
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
-
+#include "uart_tx.h"
 
 extern UART_HandleTypeDef huart2;
 extern osMessageQueueId_t uart_tx_queueHandle;
@@ -22,16 +22,6 @@ typedef struct {
 } uart_tx;
 
 #endif
-
-typedef struct uart_tx_queue_pkg_s  {
-    uint8_t msg_id;
-        #define UART_TX_MSG1_SEND_SYNC  (0)
-        #define UART_TX_MSG0_SEND_DATA  (1)
-    uint8_t dummy[3];
-
-    void *data;
-} uart_tx_queue_pkg_t;
-
 
 
 //uart_tx_queue_pkg_t *pkg;
