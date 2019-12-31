@@ -293,7 +293,7 @@ static void MX_GPIO_Init(void)
   */
 /* USER CODE END Header_StartDefaultTask */
 
-char template[] = "I'm QQM123\r\n";
+
 void StartDefaultTask(void *argument)
 {
     
@@ -307,8 +307,7 @@ void StartDefaultTask(void *argument)
   for(;;)
   {
     // In this function, we would send the queue to receiver
-    //char template[] = "I'm QQM123\r\n";
-    int len = strlen(template);
+    char *template = "I'm QQM123\r\n";
     char *ptr = pvPortMalloc(strlen(template)+8);
     //char *ptr = pvPortMalloc(32);
     *((uint32_t*)(ptr)) = id;
