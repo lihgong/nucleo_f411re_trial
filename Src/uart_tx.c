@@ -58,8 +58,8 @@ void touch_dma(void)
     } else { // wrap-around case
         HAL_UART_Transmit_DMA(&huart2, g_uart_tx.buf + rptr, UART_TX_BUF_SZ - rptr);
         g_uart_tx.rptr = 0;
-        char *msg = "wrap around happening...\r\n";
-        push_buf(msg, strlen(msg));
+        //char *msg = "wrap around happening...\r\n";
+        //push_buf(msg, strlen(msg));
     }
     g_uart_tx.dma_on_going = 1;
 }
@@ -89,7 +89,7 @@ void task_uart_tx_entry(void *argument)
 
 
         } else {
-            char str_to_send[] = "UNSUPPORTED MSG\r\n";
+            //char str_to_send[] = "UNSUPPORTED MSG\r\n";
             //HAL_UART_Transmit(&huart2, (uint8_t*)str_to_send, sizeof(str_to_send), HAL_MAX_DELAY);
         }
 
@@ -131,3 +131,40 @@ void uart_tx_send_str(char *str)
     osMessageQueuePut(uart_tx_queueHandle, &pkg, /*prio*/0, osWaitForever);
 
 }
+
+
+void uart_tx_send_str_pkt(char *str)
+{
+    // byte[0] frame start, 0x55
+    // byte[1] length, payload length (no type & CRC)
+    // byte[2] type
+    // byte[3:3+length-1] payload
+    // byte[length_3] CRC
+    uint32_t payload_len = strlen(str);
+    uint32_t pkt_len = payload_len + 4;
+    uint8_t *frame = pvPortMalloc(pkt_len);
+    frame[0] = 0x55;
+    frame[1] = payload_len;
+    frame[2] = 0x2;
+    memcpy(frame+3, str, payload_len);
+    uint8_t crc = 0;
+    for(uint32_t i=0; i<pkt_len-1; i++) {
+        crc += frame[i];
+    }
+    frame[pkt_len-1] = crc;
+
+    // Compose message to send
+    uint32_t buf_sz = strlen(str) + 1;
+    uart_tx_queue_pkg_t pkg = {
+      .msg_id = UART_TX_MSG1_SEND_DATA,
+      .len = pkt_len,
+      .payload = frame,
+    };
+    //strcpy(pkg.payload, str);
+
+    // In this function, we would send the queue to receiver
+    osMessageQueuePut(uart_tx_queueHandle, &pkg, /*prio*/0, osWaitForever);
+
+}
+
+

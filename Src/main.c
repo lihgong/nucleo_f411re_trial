@@ -323,10 +323,13 @@ void StartDefaultTask(void *argument)
   char *template = "I'm QQM123\r\n";
   for(;;)
   {
-    extern void uart_tx_send_str(char *str);
-    uart_tx_send_str(template);
+    //extern void uart_tx_send_str(char *str);
+    //uart_tx_send_str(template);
 
-    osDelay(2);
+    extern void uart_tx_send_str_pkt(char *str);
+    uart_tx_send_str_pkt(template);
+
+    osDelay(3);
   }
   /* USER CODE END 5 */ 
 }
