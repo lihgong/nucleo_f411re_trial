@@ -31,7 +31,6 @@ try:
     while True:
         while ser.in_waiting: # data is pending
             data_buf += ser.read(4096)
-            #print(len(data_buf))
 
             #print(len(data_buf))
             #print(data_buf)
@@ -40,15 +39,12 @@ try:
             #data_buf = b''
 
 
-            iter = 0
             while True:
-                #print(iter)
-                iter += 1
                 status, consumed_buf, start, dec_len = decode(data_buf)
                 #print(status, consumed_buf, start, dec_len)
                 if status == True: # find the frame
                     data = data_buf[start:start+dec_len]
-                    #print('Decoded data: %s' % data)
+                    print('Decoded data: %s' % data)
                 data_buf = data_buf[consumed_buf:]
                 if status == False:
                     break # end of decode
@@ -59,17 +55,3 @@ try:
 except KeyboardInterrupt:
     ser.close()
 
-
-
-
-'''
-
-def test(buf):
-    buf.pop()
-    print(buf)
-
-z = b"U\x0c\x02I'm QQM123\r\n\xa1U\x0c\x02I'm QQM123\r\n\xa1"
-test(z)
-
-
-'''
